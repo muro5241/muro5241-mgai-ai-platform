@@ -3,13 +3,23 @@ import os
 import secrets
 import socket
 import subprocess
+import sys
 import tempfile
 import time
+import traceback
 from pathlib import Path
 
 import httpx
 from cryptography.fernet import Fernet
 
+
+def report_uncaught(kind, value, tb):
+    for line in traceback.format_exception(kind, value, tb):
+        for part in line.splitlines():
+            print("::error::" + part, flush=True)
+
+
+sys.excepthook = report_uncaught
 root = Path(__file__).resolve().parents[1]
 docker = ["docker"]
 if os.getenv("MGAI_DOCKER_CONFIG"):
