@@ -173,6 +173,11 @@ with tempfile.TemporaryDirectory(prefix="mgai-compose-") as directory:
         print("No-key generation rejects honestly; no vendor call PASS")
         print("Non-root/read-only runtime and owner-credential isolation PASS")
         print("API/worker restart with persistent PostgreSQL workspace PASS")
+    except Exception:
+        # Logs contain service diagnostics, never an environment dump.
+        print(Path("/tmp/mgai-compose-smoke.log").read_text())
+        subprocess.run(compose + ["logs", "--tail", "80"], check=False)
+        raise
     finally:
         subprocess.run(
             compose + ["down", "-v", "--remove-orphans"],
