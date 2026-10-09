@@ -31,8 +31,6 @@ with socket.socket() as sock:
 base = f"http://127.0.0.1:{port}"
 with tempfile.TemporaryDirectory(prefix="mgai-compose-") as directory:
     path = Path(directory)
-    pg = path / "pgdata"
-    pg.mkdir()
     password, app_password, admin_password = (
         secrets.token_urlsafe(30),
         secrets.token_urlsafe(30),
@@ -46,11 +44,7 @@ with tempfile.TemporaryDirectory(prefix="mgai-compose-") as directory:
         )
     override = path / "override.yaml"
     override.write_text(
-        "services:\n  postgres:\n    volumes:\n      - type: bind\n        source: "
-        + str(pg)
-        + '\n        target: /var/lib/postgresql/data\n  api:\n    ports: !override ["127.0.0.1:'
-        + str(port)
-        + ':8000"]\n'
+        'services:\n  api:\n    ports: !override ["127.0.0.1:' + str(port) + ':8000"]\n'
     )
     compose = docker + [
         "compose",
@@ -201,26 +195,6 @@ with tempfile.TemporaryDirectory(prefix="mgai-compose-") as directory:
     finally:
         subprocess.run(
             compose + ["down", "-v", "--remove-orphans"],
-            check=False,
-            capture_output=True,
-        )
-        # This unique directory contains only generated smoke-test data. Remove it via
-        # a root container because PostgreSQL owns its files; never touch real volumes.
-        subprocess.run(
-            docker
-            + [
-                "run",
-                "--rm",
-                "--user",
-                "0",
-                "--entrypoint",
-                "sh",
-                "-v",
-                str(pg) + ":/cleanup",
-                "postgres:17-bookworm",
-                "-c",
-                "find /cleanup -mindepth 1 -maxdepth 1 -exec rm -rf {} +",
-            ],
             check=False,
             capture_output=True,
         )
