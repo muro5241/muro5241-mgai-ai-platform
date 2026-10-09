@@ -15,3 +15,7 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+
+*.tsbuildinfo
+
+/frontend/node_modules

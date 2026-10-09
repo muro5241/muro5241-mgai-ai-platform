@@ -1,0 +1,71 @@
+x-runtime: &runtime
+  image: mgai-ai-platform:local
+  build: .
+  init: true
+  read_only: true
+  tmpfs: ["/tmp:size=32m,mode=1777"]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: &runtime-env
+    DATABASE_URL: ${DATABASE_URL:?Run scripts/init_env.py first}
+    DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:?Generate and preserve the encryption key}
+    PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://127.0.0.1:8080}
+    LOCAL_DEV: ${LOCAL_DEV:-true}
+    NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+    COMMERCIAL_MODE: ${COMMERCIAL_MODE:-false}
+    COMMERCIAL_AGREEMENT_REFERENCE: ${COMMERCIAL_AGREEMENT_REFERENCE:-}
+    GLOBAL_DAILY_REQUESTS: ${GLOBAL_DAILY_REQUESTS:-100}
+    GLOBAL_DAILY_USD_LIMIT: ${GLOBAL_DAILY_USD_LIMIT:-5.00}
+    FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
+  depends_on:
+    migrate: {condition: service_completed_successfully}
+  restart: unless-stopped
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: mgai_owner
+      POSTGRES_DB: mgai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/init_env.py first}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U mgai_owner -d mgai"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    image: mgai-ai-platform:local
+    build: .
+    command: [python, -m, mgai.migrate]
+    environment:
+      DATABASE_URL: ${MIGRATION_DATABASE_URL:?Run scripts/init_env.py first}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Run scripts/init_env.py first}
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: "no"
+  worker:
+    <<: *runtime
+    command: [python, -m, mgai.worker]
+    mem_limit: 384m
+    healthcheck:
+      test: [CMD, python, -m, mgai.health]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 15s
+  api:
+    <<: *runtime
+    ports: ["127.0.0.1:8080:8000"]
+    mem_limit: 768m
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      worker: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 10s
+volumes:
+  postgres-data:
