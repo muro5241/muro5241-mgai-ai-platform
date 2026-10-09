@@ -1,9 +1,52 @@
+import base64
+import hashlib
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from cryptography.fernet import Fernet
+from sqlalchemy.engine import URL
+
+
+def postgres_url(value):
+    """Normalize managed-provider URLs without exposing connection credentials."""
+    if value.startswith(("postgres://", "postgresql://")):
+        return "postgresql+psycopg://" + value.split("://", 1)[1]
+    return value
+
+
+def runtime_database_url():
+    value = os.getenv("DATABASE_URL", "")
+    if value:
+        return postgres_url(value)
+    if os.getenv("PGHOST") and os.getenv("MGAI_DB_APP_PASSWORD"):
+        return URL.create(
+            "postgresql+psycopg",
+            username="mgai_app",
+            password=os.environ["MGAI_DB_APP_PASSWORD"],
+            host=os.environ["PGHOST"],
+            port=int(os.getenv("PGPORT", "5432")),
+            database=os.getenv("PGDATABASE", "mgai"),
+            query={"sslmode": os.getenv("PGSSLMODE", "require")},
+        ).render_as_string(hide_password=False)
+    return ""
+
+
+def encryption_key_from_env():
+    direct = os.getenv("DATA_ENCRYPTION_KEY", "")
+    if direct:
+        return direct
+    secret = os.getenv("DATA_ENCRYPTION_SECRET", "")
+    if secret:
+        if len(secret) < 32:
+            raise ValueError(
+                "DATA_ENCRYPTION_SECRET needs at least 32 random characters"
+            )
+        return base64.urlsafe_b64encode(
+            hashlib.sha256(secret.encode()).digest()
+        ).decode()
+    return ""
 
 
 @dataclass(frozen=True)
@@ -22,9 +65,10 @@ class Settings:
     @classmethod
     def from_env(cls):
         return cls(
-            database_url=os.getenv("DATABASE_URL", ""),
-            encryption_key=os.getenv("DATA_ENCRYPTION_KEY", ""),
-            public_base_url=os.getenv("PUBLIC_BASE_URL", "https://localhost"),
+            database_url=runtime_database_url(),
+            encryption_key=encryption_key_from_env(),
+            public_base_url=os.getenv("PUBLIC_BASE_URL")
+            or os.getenv("RENDER_EXTERNAL_URL", "https://localhost").rstrip("/"),
             nvidia_api_key=os.getenv("NVIDIA_API_KEY", ""),
             local_dev=os.getenv("LOCAL_DEV", "false").lower() == "true",
             commercial_mode=os.getenv("COMMERCIAL_MODE", "false").lower() == "true",

@@ -3,7 +3,24 @@
 Checked on **2026-10-09 UTC**. Commercial/customer service remains disabled.
 This is a technical evidence record, not confirmation of this account's contractual rights.
 
-## What was actually verified
+## Current verified default — 2026-10-09
+
+A genuine authenticated Turkish generation request to
+`nvidia/nemotron-3-super-120b-a12b` returned HTTP 200 and complete text: 57 input
++ 123 output tokens, 5.4 seconds, finish reason `stop`. This was an actual provider
+response, not a mock. The application's NVIDIA provider live test also passed after
+the model switch. The previous 70B generation returned HTTP 404 despite appearing
+in the live model catalog; it is disabled and rejected for new jobs, while historic
+job foreign keys are preserved. 51B remains optional and was not genuinely tested.
+
+The [official Super model card](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b)
+was retrieved. It links the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/)
+and separately the API Trial Terms. It documents `enable_thinking=False`, used by
+the successful request and now applied to this model in MGAI. Its supported-language
+list does not list Turkish; one successful output is not a comprehensive quality
+assessment. Commercial model readiness is not hosted-account resale permission.
+
+## Historical catalog/license checks
 
 1. The live official endpoint `GET https://integrate.api.nvidia.com/v1/models`
    returned **HTTP 200**, without an API key, with 80 model IDs. This is a real

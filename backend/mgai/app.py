@@ -31,7 +31,7 @@ from .models import (
     uid,
 )
 from .providers import NvidiaProvider, ProviderError
-from .registry import list_models, seed
+from .registry import DEFAULT_MODEL_ID, list_models, seed
 from .schemas import (
     CreditGrant,
     Generate,
@@ -75,6 +75,7 @@ def user_view(user):
 def model_view(model):
     return {
         "id": model.id,
+        "is_default": model.id == DEFAULT_MODEL_ID,
         "name": model.name,
         "provider": model.provider,
         "license_name": model.license_name,

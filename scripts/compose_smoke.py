@@ -125,7 +125,7 @@ with tempfile.TemporaryDirectory(prefix="mgai-compose-") as directory:
                 headers=headers,
                 json={
                     "workspace_id": workspace_id,
-                    "model_id": "nvidia/llama-3.1-nemotron-70b-instruct",
+                    "model_id": "nvidia/nemotron-3-super-120b-a12b",
                     "messages": [
                         {"role": "user", "content": "No provider key available"}
                     ],

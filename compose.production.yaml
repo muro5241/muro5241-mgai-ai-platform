@@ -1,0 +1,42 @@
+# Apply with: docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d --build --wait
+services:
+  api:
+    environment:
+      LOCAL_DEV: "false"
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Actual HTTPS origin required}
+      FORWARDED_ALLOW_IPS: 172.30.86.10
+    ports: !reset []
+    networks: [default]
+  worker:
+    environment:
+      LOCAL_DEV: "false"
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Actual HTTPS origin required}
+  postgres:
+    mem_limit: 384m
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      MGAI_HOSTNAME: ${MGAI_HOSTNAME:?Actual DNS hostname required}
+      MGAI_TLS_EMAIL: ${MGAI_TLS_EMAIL:?TLS contact email required}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    networks:
+      default:
+        ipv4_address: 172.30.86.10
+    depends_on:
+      api: {condition: service_healthy}
+networks:
+  default:
+    ipam:
+      config: [{subnet: 172.30.86.0/24}]
+volumes:
+  caddy-data:
+  caddy-config:

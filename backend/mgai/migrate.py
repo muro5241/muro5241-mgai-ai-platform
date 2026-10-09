@@ -7,6 +7,8 @@ from alembic import command
 from alembic.config import Config
 from psycopg import sql
 
+from .config import postgres_url
+
 
 def grant_runtime(owner_url, password):
     with psycopg.connect(
@@ -43,8 +45,9 @@ def grant_runtime(owner_url, password):
 
 
 if __name__ == "__main__":
+    os.environ["DATABASE_URL"] = postgres_url(os.environ["DATABASE_URL"])
     command.upgrade(Config("alembic.ini"), "head")
-    password = os.getenv("APP_DB_PASSWORD")
+    password = os.getenv("APP_DB_PASSWORD") or os.getenv("MGAI_DB_APP_PASSWORD")
     if password:
         grant_runtime(os.environ["DATABASE_URL"], password)
     print("Migrations completed. Runtime role provisioned when configured.")

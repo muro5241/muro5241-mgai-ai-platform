@@ -74,3 +74,5 @@ Test backup + encryption-key restore and monitor worker staleness/uncertain jobs
 Do not automatically retry uncertain jobs; inspect vendor/account evidence first.
 Do not use `docker compose down -v` against persistent user data; ordinary `down`
 preserves the database volume. Credits do not represent actual provider billing.
+
+See [production release](PRODUCTION-RELEASE.md) for the concrete Render Blueprint and Docker/Caddy configuration. No production URL has yet been verified.

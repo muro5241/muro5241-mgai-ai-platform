@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+from .registry import DEFAULT_MODEL_ID
+
 
 class Strict(BaseModel):
     model_config = {"extra": "forbid", "str_strip_whitespace": True}
@@ -38,7 +40,7 @@ class Message(Strict):
 
 class Generate(Strict):
     workspace_id: str = Field(min_length=36, max_length=36)
-    model_id: str = Field(min_length=3, max_length=150)
+    model_id: str = Field(default=DEFAULT_MODEL_ID, min_length=3, max_length=150)
     messages: list[Message] = Field(min_length=1, max_length=12)
     max_tokens: int = Field(default=1024, ge=64, le=2048)
     temperature: float = Field(default=0.5, ge=0, le=1)

@@ -77,3 +77,15 @@ contract test when a secure key is available. See [validation](docs/VALIDATION.m
 See [architecture](docs/ARCHITECTURE.md), [security](docs/SECURITY.md), and
 [commercial readiness](docs/COMMERCIAL-READINESS.md). Built with Llama;
 [Llama 3.1 license](docs/licenses/LLAMA-3.1.txt).
+
+## Current default and production release
+
+The default is `nvidia/nemotron-3-super-120b-a12b`, tested with actual Turkish
+NVIDIA generation. The unavailable 70B endpoint is disabled without deleting
+historical jobs. New and upgraded databases select Super first; optional 51B
+remains a separate, unverified account capability. Non-reasoning mode is used for
+bounded text output. Model pricing and commercial account rights are not inferred.
+
+See [production release preparation](docs/PRODUCTION-RELEASE.md) for the new Render
+Blueprint, dedicated Docker/Caddy HTTPS option, secret handling, estimated costs,
+and the actual public-URL verification gate. No live MGAI URL is claimed.

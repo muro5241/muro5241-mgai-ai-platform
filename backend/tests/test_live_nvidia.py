@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from mgai.providers import NvidiaProvider
-from mgai.registry import MODELS
+from mgai.registry import DEFAULT_MODEL_ID, generation_options
 
 
 @pytest.mark.skipif(
@@ -23,7 +23,7 @@ def test_real_nvidia_generation_once():
         async with httpx.AsyncClient() as client:
             provider = NvidiaProvider(ProviderSettings(), client)
             available = await provider.models()
-            model = os.getenv("LIVE_NVIDIA_MODEL", MODELS[0]["id"])
+            model = os.getenv("LIVE_NVIDIA_MODEL", DEFAULT_MODEL_ID)
             assert model in available, "Model is absent from the current live catalog"
             return await provider.generate(
                 model,
@@ -37,6 +37,7 @@ def test_real_nvidia_generation_once():
                     "max_tokens": 128,
                     "temperature": 0.2,
                     "top_p": 0.9,
+                    **generation_options(model),
                 },
             )
 

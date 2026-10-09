@@ -1,0 +1,8 @@
+{
+    email {$MGAI_TLS_EMAIL}
+}
+
+{$MGAI_HOSTNAME} {
+    encode zstd gzip
+    reverse_proxy api:8000
+}

@@ -145,8 +145,8 @@ def test_desktop_workspace_model_generation_and_usage(page):
     ).to_be_visible()
     page.get_by_role("button", name="AI stüdyosu", exact=True).click()
     page.get_by_label("Çalışma alanı", exact=True).select_option(label="ParaRadar Test")
-    page.get_by_label("Metin modeli", exact=True).select_option(
-        "nvidia/llama-3.1-nemotron-70b-instruct"
+    expect(page.get_by_label("Metin modeli", exact=True)).to_have_value(
+        "nvidia/nemotron-3-super-120b-a12b"
     )
     page.get_by_label("İsteğiniz").fill("Türkçe bir eğitim video senaryosu yaz.")
     page.get_by_role("button", name="Üret", exact=True).click()
