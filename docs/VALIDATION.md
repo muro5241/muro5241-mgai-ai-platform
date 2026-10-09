@@ -13,7 +13,9 @@ Ordinary job/browser tests mock only NVIDIA upstream responses and explicitly la
 
 ## Container and CI verification
 
-The first new local image build failed because the builder lacked the cloud proxy's DNS/network path. A supported host-network/proxy/CA retry preserves artifact hashes and TLS verification. Consult the latest PR CI for final Docker/Compose outcomes; do not count an unfinished workflow as passed.
+The initial local builder lacked the cloud proxy DNS mapping. Supplying the supported proxy settings, host mapping and verified CA fixed it without disabling TLS or hash checks. The final local Docker build and full Compose functional/restart checks passed. Caddy 2.10.2 configuration validation passed with dropped capabilities; no public certificate was requested or verified.
+
+Both push and PR CI passed for code commit `dabda5b02877a88366010d8e671ebc30ee8bcd37`, including the complete tests, production Compose parsing, Docker build and functional Compose smoke test. [PR CI run](https://github.com/muro5241/muro5241-mgai-ai-platform/actions/runs/37870462351). Subsequent documentation-only updates do not change the validated code.
 
 Previous MVP code passed full fresh-runner Docker Compose PostgreSQL/migrations/worker/API/frontend/admin/login/workspace checks, non-root/read-only runtime, owner-credential isolation and restart persistence. Historical run: https://github.com/muro5241/muro5241-mgai-ai-platform/actions/runs/37865297263
 
