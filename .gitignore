@@ -17,3 +17,5 @@ test-results/
 .DS_Store
 
 *.tsbuildinfo
+
+/frontend/node_modules
